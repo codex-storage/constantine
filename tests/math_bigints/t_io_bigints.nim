@@ -120,4 +120,38 @@ proc main() =
         let hex = y.toHex()
 
         check: pHex == hex
+
+  suite "IO Marshalling - BigInt" & " [" & $WordBitWidth & "-bit words]":
+    test "unmarshalling byte array":
+      block: # Big-Endian with byte padding
+        let bytes = [0x12'u8, 0x34'u8, 0x56'u8]
+        let x = BigInt[256].unmarshal(bytes, bigEndian)
+        check x.toHex() == "0x0000000000000000000000000000000000000000000000000000000000123456"
+
+      block: # Big-Endian with bit padding
+        let bytes = [0x12'u8, 0x34'u8, 0x56'u8]
+        let x = BigInt[254].unmarshal(bytes, bigEndian)
+        check x.toHex() == "0x0000000000000000000000000000000000000000000000000000000000123456"
+
+      block: # Big-Endian without padding
+        var bytes: array[32, byte]
+        bytes[^3..^1] = [0x12'u8, 0x34'u8, 0x56'u8]
+        let x = BigInt[256].unmarshal(bytes, bigEndian)
+        check x.toHex() == "0x0000000000000000000000000000000000000000000000000000000000123456"
+
+      block: # Little-Endian with byte padding
+        let bytes = [0x12'u8, 0x34'u8, 0x56'u8]
+        let x = BigInt[256].unmarshal(bytes, littleEndian)
+        check x.toHex() == "0x0000000000000000000000000000000000000000000000000000000000563412"
+
+      block: # Little-Endian with bit padding
+        let bytes = [0x12'u8, 0x34'u8, 0x56'u8]
+        let x = BigInt[254].unmarshal(bytes, littleEndian)
+        check x.toHex() == "0x0000000000000000000000000000000000000000000000000000000000563412"
+
+      block: # Little-Endian without padding
+        var bytes: array[32, byte]
+        bytes[^3..^1] = [0x12'u8, 0x34'u8, 0x56'u8]
+        let x = BigInt[256].unmarshal(bytes, littleEndian)
+        check x.toHex() == "0x5634120000000000000000000000000000000000000000000000000000000000"
 main()
